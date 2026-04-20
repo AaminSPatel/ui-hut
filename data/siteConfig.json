@@ -1,0 +1,26 @@
+{
+  "brandName": "UI Hut",
+  "tagline": "Premium UI Components for Modern Developers",
+  "description": "Production-ready React & Next.js components to supercharge your development.",
+  "theme": {
+    "primaryColor": "#6366f1",
+    "darkMode": true
+  },
+  "contact": {
+    "email": "hello@uihut.dev",
+    "phone": "+91 98765 43210",
+    "address": "Tech Hub, Indore, MP 452001",
+    "whatsapp": "919876543210"
+  },
+  "socialLinks": {
+    "twitter": "https://twitter.com/uihut",
+    "github": "https://github.com/uihut",
+    "linkedin": "https://linkedin.com/company/uihut",
+    "instagram": "https://instagram.com/uihut"
+  },
+  "seo": {
+    "title": "UI Hut - Premium UI Components Marketplace",
+    "description": "Buy production-ready React, Next.js & Tailwind UI components. Save hundreds of dev hours.",
+    "keywords": "React components, Next.js, Tailwind CSS, UI library, component marketplace"
+  }
+}

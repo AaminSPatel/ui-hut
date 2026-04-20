@@ -1,0 +1,33 @@
+{
+  "autoPlay": true,
+  "interval": 5000,
+  "slides": [
+    {
+      "id": 1,
+      "title": "Ship Faster with Premium UI",
+      "subtitle": "Production-ready components that save you 1000+ hours of development time.",
+      "buttonText": "Browse Components →",
+      "buttonHref": "/components",
+      "gradient": "from-indigo-600 via-purple-600 to-pink-500",
+      "image": null
+    },
+    {
+      "id": 2,
+      "title": "Built for Modern Stacks",
+      "subtitle": "React, Next.js, Tailwind CSS — every component works seamlessly with your workflow.",
+      "buttonText": "Explore Library →",
+      "buttonHref": "/components",
+      "gradient": "from-amber-500 via-orange-500 to-rose-500",
+      "image": null
+    },
+    {
+      "id": 3,
+      "title": "Lifetime Updates Included",
+      "subtitle": "Buy once, get all future updates free. Plus priority support and Discord community access.",
+      "buttonText": "View Pricing →",
+      "buttonHref": "/components",
+      "gradient": "from-teal-500 via-cyan-500 to-blue-500",
+      "image": null
+    }
+  ]
+}
