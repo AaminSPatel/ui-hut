@@ -137,9 +137,9 @@ export default function Header() {
                 className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-[var(--surface-2)] transition-all"
               >
                 <div className="avatar w-7 h-7 text-sm">
-                  {user.name.charAt(0)}
+                  {user?.name.charAt(0)}
                 </div>
-                <span className="text-sm font-medium text-[var(--text)]">{user.name.split(' ')[0]}</span>
+                <span className="text-sm font-medium text-[var(--text)]">{user?.name?.split(' ')[0]}</span>
                 <FiChevronDown className={`w-4 h-4 text-[var(--text-muted)] transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
               </button>
 
@@ -153,8 +153,8 @@ export default function Header() {
                     className="absolute right-0 top-full mt-2 w-52 rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-lg)] overflow-hidden z-50"
                   >
                     <div className="p-3 border-b border-[var(--border)]">
-                      <p className="font-semibold text-sm text-[var(--text)]">{user.name}</p>
-                      <p className="text-xs text-[var(--text-muted)] mt-0.5">{user.email}</p>
+                      <p className="font-semibold text-sm text-[var(--text)]">{user?.name}</p>
+                      <p className="text-xs text-[var(--text-muted)] mt-0.5">{user?.email}</p>
                     </div>
                     <div className="p-1">
                       {[
