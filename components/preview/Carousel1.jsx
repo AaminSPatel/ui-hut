@@ -81,7 +81,7 @@ export default function Carousel3({ faces = defaultFaces, size = 340 }) {
           height: size,
           position: "relative",
           transformStyle: "preserve-3d",
-          transform: `rotateY(${rotateY}deg)`,
+          transform: `rotateY(${rotateY}deg) scale(0.8)`,
           transition: "transform 0.8s cubic-bezier(0.23,1,0.32,1)",
         }}>
           {faces.slice(0, 4).map((face, i) => (

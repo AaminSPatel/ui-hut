@@ -34,7 +34,7 @@ const defaultCards = [
   },
   {
     id: 4,
-    image: "https://images.unsplash.com/photo-1558618047-f1de3a9c0eb3?w=600&q=80",
+    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600&q=80",
     frontTitle: "Color Theory",
     frontDesc: "Palettes that evoke emotion",
     backTitle: "Color Science",
@@ -133,7 +133,7 @@ export default function Carousel2({ cards = defaultCards, autoPlay = false }) {
   };
 
   return (
-    <section style={{ minHeight: "100vh", background: "#080810", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: "80px 20px" }}>
+    <section style={{ minHeight: "100vh", width:'100%', background: "#080810", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", overflow: "hidden", padding: "80px 20px" }}>
       <div style={{ textAlign: "center", marginBottom: 60 }}>
         <span style={{ color: "#f59e0b", fontSize: 11, fontWeight: 700, letterSpacing: "0.35em", textTransform: "uppercase", display: "block", marginBottom: 12 }}>Interactive Cards</span>
         <h2 style={{ color: "#fff", fontSize: "clamp(2rem,4vw,3rem)", fontWeight: 300, fontFamily: "'Georgia',serif", letterSpacing: "-0.02em" }}>

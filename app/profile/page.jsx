@@ -8,7 +8,7 @@ import Link from 'next/link';
 export default function ProfilePage() {
   const { user, orders, wishlist } = useSite();
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ name: user.name, email: user.email });
+  const [form, setForm] = useState({ name: user?.name, email: user?.email });
 
   const totalSpent = orders.reduce((sum, o) => sum + o.total, 0);
 
@@ -16,7 +16,7 @@ export default function ProfilePage() {
     { icon: FiPackage, label: 'Total Orders', value: orders.length, color: '#6366f1' },
     { icon: FiHeart, label: 'Wishlist', value: wishlist.length, color: '#ec4899' },
     { icon: FiStar, label: 'Total Spent', value: `$${totalSpent}`, color: '#f59e0b' },
-    { icon: FiShield, label: 'Plan', value: user.plan, color: '#10b981' },
+    { icon: FiShield, label: 'Plan', value: user?.plan, color: '#10b981' },
   ];
 
   return (
@@ -44,7 +44,7 @@ export default function ProfilePage() {
                   className="w-24 h-24 rounded-2xl flex items-center justify-center text-4xl font-display font-bold text-white mx-auto shadow-[var(--shadow-lg)]"
                   style={{ background: 'linear-gradient(135deg, var(--primary), var(--accent))' }}
                 >
-                  {user.name.charAt(0)}
+                  {user?.name.charAt(0)}
                 </div>
                 <div
                   className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-[var(--surface)] flex items-center justify-center text-xs text-white"
@@ -53,17 +53,17 @@ export default function ProfilePage() {
                   ✓
                 </div>
               </div>
-              <h2 className="font-display font-bold text-xl text-[var(--text)] mb-1">{user.name}</h2>
-              <p className="text-sm text-[var(--text-muted)] mb-3">{user.email}</p>
+              <h2 className="font-display font-bold text-xl text-[var(--text)] mb-1">{user?.name}</h2>
+              <p className="text-sm text-[var(--text-muted)] mb-3">{user?.email}</p>
               <span
                 className="inline-block px-3 py-1 rounded-full text-xs font-bold text-white"
                 style={{ background: 'linear-gradient(135deg, var(--primary), var(--accent))' }}
               >
-                {user.plan} Member
+                {user?.plan} Member
               </span>
               <div className="flex items-center justify-center gap-2 mt-4 text-xs text-[var(--text-subtle)]">
                 <FiCalendar className="w-3 h-3" />
-                Joined {new Date(user.joinedAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long' })}
+                Joined {new Date(user?.joinedAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'long' })}
               </div>
             </motion.div>
 
@@ -162,7 +162,7 @@ export default function ProfilePage() {
                     <FiCalendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <input
                       type="text"
-                      value={new Date(user.joinedAt).toLocaleDateString()}
+                      value={new Date(user?.joinedAt).toLocaleDateString()}
                       disabled
                       className="input-custom pl-10 disabled:opacity-60 disabled:cursor-not-allowed"
                     />
@@ -177,7 +177,7 @@ export default function ProfilePage() {
                     <FiShield className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--primary)]" />
                     <input
                       type="text"
-                      value={user.plan + ' Plan'}
+                      value={user?.plan + ' Plan'}
                       disabled
                       className="input-custom pl-10 disabled:opacity-60 disabled:cursor-not-allowed"
                     />

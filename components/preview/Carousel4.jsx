@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 const defaultSlides = [
   {
     id: 1,
-    image: "https://images.unsplash.com/photo-1682685797886-e0e0a0a1f823?w=900&q=80",
+    image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=900&q=80",
     title: "Into the Wild Unknown",
     subtitle: "Discover breathtaking landscapes",
     tag: "Adventure",

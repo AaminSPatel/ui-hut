@@ -24,7 +24,7 @@ const navItems = [
 
 export default function AdminLayout({ children }) {
   const { isAdminAuthenticated, adminUser, adminLogout, darkMode, toggleDarkMode } = useSite();
-  const router = useRouter();``
+  const router = useRouter();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 

@@ -37,7 +37,7 @@ export default function Carousel9({ projects = defaultProjects }) {
               onClick={() => { setActive(i); setExpanded(isExpanded ? null : project.id); }}
               style={{
                 position: "relative",
-                width: isExpanded ? Math.min(700, window.innerWidth - 40) : CARD_W,
+                width: isExpanded ? Math.min(700, typeof window !== 'undefined' ? window.innerWidth - 40 : 700) : CARD_W,
                 height: isExpanded ? 420 : CARD_H,
                 borderRadius: 20,
                 overflow: "hidden",

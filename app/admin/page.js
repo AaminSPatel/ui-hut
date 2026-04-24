@@ -1,246 +1,373 @@
 'use client';
-
-import { useState, useEffect } from 'react';
-import { useSite } from '@/context/SiteContext';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FiSave, FiRefreshCw, FiImage, FiSettings, FiPackage, FiInfo } from 'react-icons/fi';
-import toast from 'react-hot-toast';
-import componentsData from '@/data/components.json';
+import { useSite } from '@/context/SiteContext';
+import Link from 'next/link';
+import {
+  FiTrendingUp, FiTrendingDown, FiShoppingBag, FiUsers,
+  FiPackage, FiDollarSign, FiArrowRight, FiActivity,
+  FiEye, FiRefreshCw
+} from 'react-icons/fi';
 
-export default function AdminPage() {
-  const { config, updateConfig } = useSite();
-  const [activeTab, setActiveTab] = useState('general');
-  const [siteSettings, setSiteSettings] = useState(config);
-  const [isSaving, setIsSaving] = useState(false);
+// Mini bar chart component (no recharts dependency)
+function MiniBarChart({ data, color = 'var(--primary)' }) {
+  const max = Math.max(...data.map((d) => d.revenue));
+  return (
+    <div className="flex items-end gap-1 h-16">
+      {data.map((d, i) => (
+        <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
+          <motion.div
+            initial={{ height: 0 }}
+            animate={{ height: `${(d.revenue / max) * 100}%` }}
+            transition={{ delay: i * 0.05, duration: 0.5 }}
+            className="w-full rounded-t-sm min-h-[4px]"
+            style={{ background: i === data.length - 1 ? color : `${color}50` }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
 
-  const handleSaveSettings = async () => {
-    setIsSaving(true);
-    // Simulate API call
-    setTimeout(() => {
-      updateConfig(siteSettings);
-      toast.success('Settings saved successfully!');
-      setIsSaving(false);
-    }, 1000);
+// Donut chart (SVG)
+function DonutChart({ data }) {
+  const total = data.reduce((s, d) => s + d.value, 0);
+  let cumulative = 0;
+  const radius = 40;
+  const cx = 60;
+  const cy = 60;
+  const circumference = 2 * Math.PI * radius;
+
+  return (
+    <svg viewBox="0 0 120 120" className="w-32 h-32">
+      {data.map((segment, i) => {
+        const pct = segment.value / total;
+        const offset = cumulative * circumference;
+        cumulative += pct;
+        return (
+          <circle
+            key={i}
+            cx={cx} cy={cy} r={radius}
+            fill="none"
+            stroke={segment.color}
+            strokeWidth={20}
+            strokeDasharray={`${pct * circumference} ${circumference}`}
+            strokeDashoffset={-offset + circumference / 4}
+            style={{ transition: 'stroke-dasharray 0.5s ease' }}
+          />
+        );
+      })}
+      <circle cx={cx} cy={cy} r={30} fill="var(--surface)" />
+    </svg>
+  );
+}
+
+// Line chart (SVG)
+function LineChart({ data, color = '#6366f1' }) {
+  const max = Math.max(...data.map((d) => d.revenue));
+  const min = Math.min(...data.map((d) => d.revenue));
+  const W = 300, H = 80;
+  const points = data.map((d, i) => {
+    const x = (i / (data.length - 1)) * W;
+    const y = H - ((d.revenue - min) / (max - min)) * H * 0.8 - H * 0.1;
+    return `${x},${y}`;
+  }).join(' ');
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-20" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <polygon
+        points={`0,${H} ${points} ${W},${H}`}
+        fill="url(#lineGrad)"
+      />
+      <polyline
+        points={points}
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {data.map((d, i) => {
+        const x = (i / (data.length - 1)) * W;
+        const y = H - ((d.revenue - min) / (max - min)) * H * 0.8 - H * 0.1;
+        return <circle key={i} cx={x} cy={y} r={i === data.length - 1 ? 4 : 2.5} fill={color} />;
+      })}
+    </svg>
+  );
+}
+
+export default function AdminDashboard() {
+  const { analyticsStats, revenueData, categoryData, orders, components } = useSite();
+  const [period, setPeriod] = useState('6m');
+
+  const recentOrders = orders.slice(0, 5);
+  const topComponents = [...components].sort((a, b) => b.downloads - a.downloads).slice(0, 5);
+
+  const statCards = [
+    { label: 'Total Revenue', value: `$${analyticsStats.totalRevenue}`, icon: FiDollarSign, change: '+24%', up: true, color: '#6366f1', sub: 'vs last month' },
+    { label: 'Total Orders', value: analyticsStats.totalOrders, icon: FiShoppingBag, change: '+12%', up: true, color: '#f59e0b', sub: `${analyticsStats.completedOrders} completed` },
+    { label: 'Customers', value: analyticsStats.totalCustomers, icon: FiUsers, change: '+8%', up: true, color: '#10b981', sub: 'Total registered' },
+    { label: 'Components', value: analyticsStats.totalComponents, icon: FiPackage, change: '+3', up: true, color: '#ec4899', sub: 'Published components' },
+  ];
+
+  const statusConfig = {
+    completed: { bg: '#10b98120', color: '#10b981' },
+    processing: { bg: '#f59e0b20', color: '#f59e0b' },
+    refunded: { bg: '#ef444420', color: '#ef4444' },
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-20 bg-gray-50 dark:bg-gray-900">
-      <div className="container mx-auto px-4">
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-display font-extrabold text-2xl text-[var(--text)]">Dashboard</h1>
+          <p className="text-sm text-[var(--text-muted)] mt-0.5">Welcome back! Here's what's happening today.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {['1m', '3m', '6m', '1y'].map((p) => (
+            <button key={p} onClick={() => setPeriod(p)} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${period === p ? 'bg-[var(--primary)] text-white' : 'bg-[var(--surface)] border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)]'}`}>
+              {p}
+            </button>
+          ))}
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--border)] text-xs text-[var(--text-muted)] hover:text-[var(--text)] bg-[var(--surface)] ml-2">
+            <FiRefreshCw className="w-3.5 h-3.5" /> Refresh
+          </button>
+        </div>
+      </div>
+
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {statCards.map((card, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.08 }}
+            className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 relative overflow-hidden group hover:shadow-[var(--shadow)] transition-shadow"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-5 -translate-y-8 translate-x-8" style={{ background: card.color }} />
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${card.color}15` }}>
+                <card.icon className="w-5 h-5" style={{ color: card.color }} />
+              </div>
+              <div className={`flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${card.up ? 'text-green-500 bg-green-500/10' : 'text-red-400 bg-red-400/10'}`}>
+                {card.up ? <FiTrendingUp className="w-3 h-3" /> : <FiTrendingDown className="w-3 h-3" />}
+                {card.change}
+              </div>
+            </div>
+            <div className="font-display font-extrabold text-2xl text-[var(--text)]">{card.value}</div>
+            <div className="text-xs text-[var(--text-muted)] mt-0.5">{card.label}</div>
+            <div className="text-xs text-[var(--text-subtle)] mt-1">{card.sub}</div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Revenue Chart */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          transition={{ delay: 0.3 }}
+          className="lg:col-span-2 bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6"
         >
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">Manage your website settings, components, and content</p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sticky top-24">
-              <nav className="space-y-2">
-                {[
-                  { id: 'general', label: 'General Settings', icon: FiSettings },
-                  { id: 'components', label: 'Components', icon: FiPackage },
-                  { id: 'carousel', label: 'Carousel Images', icon: FiImage },
-                  { id: 'seo', label: 'SEO Info', icon: FiInfo },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                      activeTab === tab.id
-                        ? 'bg-primary text-white'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <tab.icon className="w-5 h-5" />
-                    <span>{tab.label}</span>
-                  </button>
-                ))}
-              </nav>
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h3 className="font-display font-bold text-[var(--text)]">Revenue Overview</h3>
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">Monthly revenue trend</p>
             </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-              {activeTab === 'general' && (
-                <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">General Settings</h2>
-                  
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 mb-2">Brand Name</label>
-                    <input
-                      type="text"
-                      value={siteSettings.brandName}
-                      onChange={(e) => setSiteSettings({ ...siteSettings, brandName: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 mb-2">Tagline</label>
-                    <input
-                      type="text"
-                      value={siteSettings.tagline}
-                      onChange={(e) => setSiteSettings({ ...siteSettings, tagline: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 mb-2">Primary Color (Hex)</label>
-                    <div className="flex items-center space-x-3">
-                      <input
-                        type="color"
-                        value={siteSettings.theme.primaryColor}
-                        onChange={(e) => setSiteSettings({
-                          ...siteSettings,
-                          theme: { ...siteSettings.theme, primaryColor: e.target.value }
-                        })}
-                        className="w-12 h-12 rounded cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={siteSettings.theme.primaryColor}
-                        onChange={(e) => setSiteSettings({
-                          ...siteSettings,
-                          theme: { ...siteSettings.theme, primaryColor: e.target.value }
-                        })}
-                        className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 mb-2">Contact Email</label>
-                    <input
-                      type="email"
-                      value={siteSettings.contact.email}
-                      onChange={(e) => setSiteSettings({
-                        ...siteSettings,
-                        contact: { ...siteSettings.contact, email: e.target.value }
-                      })}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 mb-2">Phone Number</label>
-                    <input
-                      type="text"
-                      value={siteSettings.contact.phone}
-                      onChange={(e) => setSiteSettings({
-                        ...siteSettings,
-                        contact: { ...siteSettings.contact, phone: e.target.value }
-                      })}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 mb-2">Address</label>
-                    <textarea
-                      value={siteSettings.contact.address}
-                      onChange={(e) => setSiteSettings({
-                        ...siteSettings,
-                        contact: { ...siteSettings.contact, address: e.target.value }
-                      })}
-                      rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'components' && (
-                <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Manage Components</h2>
-                  <div className="space-y-4">
-                    {componentsData.map((component) => (
-                      <div key={component.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="font-semibold text-gray-900 dark:text-white">{component.name}</h3>
-                            <p className="text-sm text-gray-500">${component.price}</p>
-                          </div>
-                          <button className="px-3 py-1 bg-primary text-white rounded-lg text-sm">
-                            Edit
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <button className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-primary hover:text-primary transition-colors">
-                    + Add New Component
-                  </button>
-                </div>
-              )}
-
-              {activeTab === 'carousel' && (
-                <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Carousel Images</h2>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                    <FiImage className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">Drag & drop images here or click to upload</p>
-                    <button className="mt-4 px-4 py-2 bg-primary text-white rounded-lg">
-                      Upload Images
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === 'seo' && (
-                <div className="space-y-6">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">SEO Settings</h2>
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 mb-2">Meta Title</label>
-                    <input
-                      type="text"
-                      value={siteSettings.seo?.title || ''}
-                      onChange={(e) => setSiteSettings({
-                        ...siteSettings,
-                        seo: { ...siteSettings.seo, title: e.target.value }
-                      })}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-700 dark:text-gray-300 mb-2">Meta Description</label>
-                    <textarea
-                      value={siteSettings.seo?.description || ''}
-                      onChange={(e) => setSiteSettings({
-                        ...siteSettings,
-                        seo: { ...siteSettings.seo, description: e.target.value }
-                      })}
-                      rows={4}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Save Button */}
-              <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  onClick={handleSaveSettings}
-                  disabled={isSaving}
-                  className="px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors flex items-center space-x-2 disabled:opacity-50"
-                >
-                  {isSaving ? (
-                    <FiRefreshCw className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <FiSave className="w-5 h-5" />
-                  )}
-                  <span>{isSaving ? 'Saving...' : 'Save All Changes'}</span>
-                </button>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 text-xs text-[var(--text-muted)]">
+                <div className="w-2.5 h-2.5 rounded-full bg-[var(--primary)]" /> Revenue
               </div>
             </div>
           </div>
-        </div>
+
+          {/* SVG Line Chart */}
+          <div className="mb-4">
+            <LineChart data={revenueData} />
+          </div>
+
+          {/* Month labels */}
+          <div className="flex justify-between text-xs text-[var(--text-subtle)]">
+            {revenueData.map((d) => <span key={d.month}>{d.month}</span>)}
+          </div>
+
+          {/* Mini bar chart below */}
+          <div className="mt-6 pt-5 border-t border-[var(--border)]">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Orders per Month</p>
+            </div>
+            <div className="flex items-end gap-2 h-12">
+              {revenueData.map((d, i) => {
+                const max = Math.max(...revenueData.map((r) => r.orders));
+                const pct = (d.orders / max) * 100;
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                    <motion.div
+                      initial={{ height: 0 }}
+                      animate={{ height: `${pct}%` }}
+                      transition={{ delay: 0.4 + i * 0.05, duration: 0.4 }}
+                      className="w-full rounded-t-sm min-h-[4px]"
+                      style={{ background: i === revenueData.length - 1 ? 'var(--accent)' : 'var(--accent)50' }}
+                    />
+                    <span className="text-xs text-[var(--text-subtle)]">{d.month}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Category donut */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6"
+        >
+          <h3 className="font-display font-bold text-[var(--text)] mb-1">Sales by Category</h3>
+          <p className="text-xs text-[var(--text-muted)] mb-5">Component category distribution</p>
+
+          <div className="flex justify-center mb-5">
+            <DonutChart data={categoryData} />
+          </div>
+
+          <div className="space-y-2.5">
+            {categoryData.map((cat) => (
+              <div key={cat.name} className="flex items-center gap-2.5">
+                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: cat.color }} />
+                <span className="text-xs text-[var(--text-muted)] flex-1">{cat.name}</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-16 bg-[var(--surface-2)] rounded-full h-1.5">
+                    <div className="h-1.5 rounded-full" style={{ width: `${cat.value}%`, background: cat.color }} />
+                  </div>
+                  <span className="text-xs font-semibold text-[var(--text)] w-7 text-right">{cat.value}%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
       </div>
+
+      {/* Tables Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Recent Orders */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl overflow-hidden"
+        >
+          <div className="flex items-center justify-between p-5 border-b border-[var(--border)]">
+            <div>
+              <h3 className="font-display font-bold text-[var(--text)]">Recent Orders</h3>
+              <p className="text-xs text-[var(--text-muted)]">{orders.length} total orders</p>
+            </div>
+            <Link href="/admin/orders" className="text-xs text-[var(--primary)] flex items-center gap-1 hover:gap-2 transition-all">
+              View all <FiArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="divide-y divide-[var(--border)]">
+            {recentOrders.map((order) => {
+              const s = statusConfig[order.status] || statusConfig.completed;
+              return (
+                <div key={order.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-[var(--surface-2)] transition-colors">
+                  <div className="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center flex-shrink-0">
+                    <FiShoppingBag className="w-3.5 h-3.5 text-[var(--primary)]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-[var(--text)] truncate">{order.userName}</p>
+                    <p className="text-xs text-[var(--text-muted)]">{order.id}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs font-bold text-[var(--text)]">${order.total}</p>
+                    <span className="text-xs px-1.5 py-0.5 rounded-md font-medium" style={{ color: s.color, background: s.bg }}>
+                      {order.status}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+
+        {/* Top Components */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55 }}
+          className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl overflow-hidden"
+        >
+          <div className="flex items-center justify-between p-5 border-b border-[var(--border)]">
+            <div>
+              <h3 className="font-display font-bold text-[var(--text)]">Top Components</h3>
+              <p className="text-xs text-[var(--text-muted)]">By downloads</p>
+            </div>
+            <Link href="/admin/components" className="text-xs text-[var(--primary)] flex items-center gap-1 hover:gap-2 transition-all">
+              Manage <FiArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="divide-y divide-[var(--border)]">
+            {topComponents.map((comp, i) => (
+              <div key={comp.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-[var(--surface-2)] transition-colors">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm flex-shrink-0" style={{ background: `${comp.color}20` }}>
+                  {comp.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-[var(--text)] truncate">{comp.name}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <div className="flex-1 bg-[var(--surface-2)] rounded-full h-1">
+                      <div className="h-1 rounded-full" style={{ width: `${(comp.downloads / 4500) * 100}%`, background: comp.color }} />
+                    </div>
+                    <span className="text-xs text-[var(--text-muted)]">{comp.downloads.toLocaleString()}</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-bold text-[var(--primary)]">${comp.price}</p>
+                  <p className="text-xs text-[var(--text-muted)]">⭐{comp.rating}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Quick Actions */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+        className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5"
+      >
+        <h3 className="font-display font-bold text-[var(--text)] mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: 'Add Component', icon: FiPackage, href: '/admin/components?action=create', color: '#6366f1' },
+            { label: 'View Orders', icon: FiShoppingBag, href: '/admin/orders', color: '#f59e0b' },
+            { label: 'Manage Customers', icon: FiUsers, href: '/admin/customers', color: '#10b981' },
+            { label: 'Site Settings', icon: FiActivity, href: '/admin/settings', color: '#ec4899' },
+          ].map((action, i) => (
+            <Link
+              key={i}
+              href={action.href}
+              className="flex flex-col items-center gap-2 p-4 rounded-xl border border-[var(--border)] bg-[var(--surface-2)] hover:shadow-[var(--shadow)] hover:border-[var(--primary)]/30 transition-all text-center group"
+            >
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform" style={{ background: `${action.color}15` }}>
+                <action.icon className="w-5 h-5" style={{ color: action.color }} />
+              </div>
+              <span className="text-xs font-medium text-[var(--text-muted)] group-hover:text-[var(--text)]">{action.label}</span>
+            </Link>
+          ))}
+        </div>
+      </motion.div>
     </div>
   );
 }

@@ -139,7 +139,7 @@ export default function Header() {
                 <div className="avatar w-7 h-7 text-sm">
                   {user?.name.charAt(0)}
                 </div>
-                <span className="text-sm font-medium text-[var(--text)]">{user?.name?.split(' ')[0]}</span>
+                <span className="text-sm font-medium text-[var(--text)]">{user?.name.split(' ')[0]}</span>
                 <FiChevronDown className={`w-4 h-4 text-[var(--text-muted)] transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
               </button>
 
@@ -202,7 +202,7 @@ export default function Header() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-white overflow-hidden border-t border-[var(--border)]"
+              className="md:hidden overflow-hidden border-t border-[var(--border)]"
             >
               <div className="py-4 flex flex-col gap-1">
                 {navLinks.map((link) => (

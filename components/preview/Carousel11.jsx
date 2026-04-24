@@ -39,7 +39,7 @@ export default function Carousel11({ slides = defaultSlides, autoPlay = true, in
   const slide = slides[current];
 
   return (
-    <section style={{ minHeight: "100vh", background: "#09090f", overflow: "hidden", position: "relative", display: "flex", alignItems: "stretch", fontFamily: "system-ui,sans-serif" }}>
+    <section style={{ minHeight: "100vh", width:'full', background: "#09090f", overflow: "hidden", position: "relative", display: "flex", alignItems: "stretch", fontFamily: "system-ui,sans-serif" }}>
       {/* Diagonal clip background */}
       <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
         <div style={{ position: "absolute", inset: 0, background: "#09090f" }} />

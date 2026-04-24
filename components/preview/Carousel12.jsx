@@ -20,14 +20,13 @@ export default function Carousel12({ pages = defaultPages, bookW = 700, bookH = 
     setFlipDir(dir);
     setFlipping(true);
     setTimeout(() => {
-      setCurrent(p => p + (dir === "next" ? 1 : -1));
+      setCurrentPage(p => p + (dir === "next" ? 1 : -1));
       setFlipping(false);
       setFlipDir(null);
     }, 700);
   }, [flipping, currentPage, total]);
 
-  const [current, setCurrent] = useState(0);
-  const page = pages[current];
+  const page = pages[currentPage];
 
   const HALF = bookW / 2;
 
